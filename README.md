@@ -142,3 +142,40 @@ curl http://localhost:8080/api/analytics/1
 ```
 
 ## Project Structure
+
+src/main/java/
+```properties
+├── Models/          # JPA Entities (User, Url, Click)
+├── Repository/      # Database access layer
+├── Service/         # Business logic
+├── Controller/      # REST endpoints
+```
+
+## Database Schema
+
+**Users Table**
+- id, username, email, password, createdAt
+
+**URLs Table**
+- id, userId, originalUrl, shortCode, createdDate, expiresDate
+
+**Clicks Table**
+- id, urlId, accessDate, ipAddress, userAgent
+
+## Future Enhancements
+
+- [ ] JWT authentication & authorization
+- [ ] User login endpoint
+- [ ] URL expiration
+- [ ] Custom short codes
+- [ ] Analytics dashboard
+- [ ] Rate limiting
+- [ ] Docker support
+
+## Author
+
+Rajveer
+
+## License
+
+MIT
