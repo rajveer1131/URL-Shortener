@@ -7,9 +7,12 @@ import com.example.URL_Shortener.Models.Url;
 import com.example.URL_Shortener.Models.User;
 import com.example.URL_Shortener.Service.ClickService;
 import com.example.URL_Shortener.Service.UrlService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.List;
 
@@ -34,33 +37,31 @@ public class UrlController {
      */
 
     @PostMapping("/shorten")
-    public ResponseEntity<ApiResponse<?>> shortenUrl(@RequestBody UrlRequestDTO urlRequestDTO) {
-        try {
-            User user = new User();
-            user.setId(urlRequestDTO.getUserId());
-            Url url = urlService.shortenUrl(user, urlRequestDTO.getOriginalUrl());
-            UrlResponseDTO urlResponseDTO = UrlResponseDTO.builder()
-                    .id(url.getId())
-                    .originalUrl(url.getOriginalUrl())
-                    .shortCode(url.getShortCode())
-                    .createdDate(url.getCreatedDate())
-                    .expiresDate(url.getExpiresDate())
-                    .build();
-            return new ResponseEntity<>(ApiResponse.success(urlResponseDTO, "URL shortened successfully"), HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(ApiResponse.error(e.getMessage()), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<ApiResponse<?>> shortenUrl(@Valid @RequestBody UrlRequestDTO urlRequestDTO) {
+        User user = new User();
+        user.setId(urlRequestDTO.getUserId());
+        Url url = urlService.shortenUrl(user, urlRequestDTO.getOriginalUrl());
+        UrlResponseDTO urlResponseDTO = UrlResponseDTO.builder()
+                .id(url.getId())
+                .originalUrl(url.getOriginalUrl())
+                .shortCode(url.getShortCode())
+                .createdDate(url.getCreatedDate())
+                .expiresDate(url.getExpiresDate())
+                .build();
+        return new ResponseEntity<>(ApiResponse.success(urlResponseDTO, "URL shortened successfully"), HttpStatus.CREATED);
     }
 
     @GetMapping("/{shortCode}")
-    public ResponseEntity<ApiResponse<?>> getOriginalUrl(@PathVariable("shortCode") String shortCode) {
-        try {
-            String originalUrl = urlService.getOriginalUrl(shortCode);
+    public RedirectView  redirectToOriginalUrl(@PathVariable("shortCode") String shortCode, HttpServletRequest request) {
 
-            return new ResponseEntity<>(ApiResponse.success(originalUrl, "Original URL Found"), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(ApiResponse.error(e.getMessage()), HttpStatus.NOT_FOUND);
-        }
+        String ipAddress = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+
+        String originalUrl = urlService.getOriginalUrlAndRecordClick(shortCode,ipAddress,userAgent);
+        RedirectView redirectView = new RedirectView(originalUrl);
+        redirectView.setStatusCode(HttpStatus.FOUND);
+        return redirectView;
+
     }
 
     @GetMapping("/user/{userId}")
@@ -81,15 +82,8 @@ public class UrlController {
 
     @DeleteMapping("/{urlId}")
     public ResponseEntity<ApiResponse<?>> deleteUrl(@PathVariable("urlId") Long urlId) {
-
-        try {
-
-            urlService.deleteUrlById(urlId);
-            return new ResponseEntity<>(ApiResponse.success(null, "URL deleted successfully"), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(ApiResponse.error(e.getMessage()), HttpStatus.NOT_FOUND);
-        }
-
+        urlService.deleteUrlById(urlId);
+        return new ResponseEntity<>(ApiResponse.success(null, "URL deleted successfully"), HttpStatus.OK);
 
     }
 }

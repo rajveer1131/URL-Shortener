@@ -12,15 +12,12 @@ import java.util.List;
 public class ClickService {
 
     private final ClickRepository clickRepository;
-    private final UrlService urlService;
 
-    public ClickService(ClickRepository clickRepository,UrlService urlService) {
+    public ClickService(ClickRepository clickRepository) {
         this.clickRepository = clickRepository;
-        this.urlService=urlService;
     }
 
-    public void recordClick(Long urlId,String ipAddress , String userAgent){
-        Url url = urlService.getUrlById(urlId);
+    public void recordClick(Url url, String ipAddress, String userAgent) {
         Click click = new Click();
         click.setUrl(url);
         click.setIpAddress(ipAddress);
@@ -29,11 +26,11 @@ public class ClickService {
         clickRepository.save(click);
     }
 
-    public List<Click> getClicksByUrl(Long urlId){
+    public List<Click> getClicksByUrl(Long urlId) {
         return clickRepository.findByUrlId(urlId);
     }
 
-    public int getClickCount(Long urlId){
+    public int getClickCount(Long urlId) {
         return clickRepository.findByUrlId(urlId).size();
     }
 }

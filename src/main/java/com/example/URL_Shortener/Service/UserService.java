@@ -1,49 +1,54 @@
 package com.example.URL_Shortener.Service;
 
+import com.example.URL_Shortener.Exception.ResourceNotFoundException;
+import com.example.URL_Shortener.Exception.UserAlreadyExistsException;
 import com.example.URL_Shortener.Models.User;
 import com.example.URL_Shortener.Repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public User createUser(User user) throws IllegalArgumentException {
-        if(userRepository.existsByEmail(user.getEmail())){
-            throw new IllegalArgumentException("User Already Exists");
+    public User createUser(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new UserAlreadyExistsException("User with " + user.getEmail() + " Already Exists");
         }
-
-        // TODO: Hash password using BCryptPasswordEncoder before saving
+        String hashedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(hashedPassword);
         return userRepository.save(user);
     }
 
-    public  User getUserById(Long id){
+    public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    public  User getUserByEmail(String email){
+    public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    public  User updateUser(User user) throws Exception{
-        if(!userRepository.existsById(user.getId())){
-            throw new IllegalArgumentException("User Does not exist");
+    public User updateUser(User user) {
+        if (!userRepository.existsById(user.getId())) {
+            throw new ResourceNotFoundException("User Does not exist");
         }
         return userRepository.save(user);
     }
 
-    public String deleteUserById(Long id){
-        if(userRepository.existsById(id)){
-            userRepository.deleteById(id);
+    public void deleteUserById(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("User Does not exist");
         }
-        return "User Deleted Successfully";
+        userRepository.deleteById(id);
     }
 
 

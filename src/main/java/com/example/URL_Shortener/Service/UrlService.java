@@ -1,12 +1,12 @@
 package com.example.URL_Shortener.Service;
 
+import com.example.URL_Shortener.Exception.ResourceNotFoundException;
 import com.example.URL_Shortener.Models.Url;
 import com.example.URL_Shortener.Models.User;
 import com.example.URL_Shortener.Repository.UrlRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -14,12 +14,14 @@ import java.util.Random;
 public class UrlService {
 
     private final UrlRepository urlRepository;
+    private final ClickService clickService;
 
-    public UrlService(UrlRepository urlRepository) {
+    public UrlService(UrlRepository urlRepository,ClickService clickService) {
         this.urlRepository = urlRepository;
+        this.clickService = clickService;
     }
 
-    public Url shortenUrl(User user, String originalUrl){
+    public Url shortenUrl(User user, String originalUrl) {
         Url url = new Url();
         url.setOriginalUrl(originalUrl);
         url.setShortCode(generateShortCode());
@@ -31,40 +33,46 @@ public class UrlService {
 
     }
 
-    public String getOriginalUrl(String shortCode){
-
-
+    public String getOriginalUrl(String shortCode) {
         return urlRepository.findByShortCode(shortCode)
-                .orElseThrow(()-> new IllegalArgumentException("ShortCode not found"))
-                .getOriginalUrl();
+                .orElseThrow(() -> new ResourceNotFoundException("ShortCode not found")).getOriginalUrl();
     }
 
-    public List<Url> getUserUrls(Long userId){
+    public String getOriginalUrlAndRecordClick(String shortCode, String ipAddress, String userAgent) {
+
+        Url url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new ResourceNotFoundException("ShortCode not found"));
+        clickService.recordClick(url, ipAddress,userAgent);
+
+        return url.getOriginalUrl();
+    }
+
+    public List<Url> getUserUrls(Long userId) {
         return urlRepository.findByUserId(userId);
     }
 
-    public Url getUrlById(Long id) throws IllegalArgumentException{
+    public Url getUrlById(Long id){
         return urlRepository.findById(id)
-                .orElseThrow(()-> new IllegalArgumentException("Url does not exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("Url does not exist"));
     }
 
     public void deleteUrlById(Long id) {
-        if(!urlRepository.existsById(id)) {
-            throw new IllegalArgumentException("URL does not exist");
+        if (!urlRepository.existsById(id)) {
+            throw new ResourceNotFoundException("URL does not exist");
         }
         urlRepository.deleteById(id);
     }
 
-    public String generateShortCode(){
-       String code;
-       do{
-           code=generateRandomShortCode();
-       }while(urlRepository.findByShortCode(code).isPresent());
+    public String generateShortCode() {
+        String code;
+        do {
+            code = generateRandomShortCode();
+        } while (urlRepository.findByShortCode(code).isPresent());
 
-       return code;
+        return code;
     }
 
-    private String generateRandomShortCode(){
+    private String generateRandomShortCode() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         StringBuilder result = new StringBuilder();
         Random random = new Random();

@@ -1,6 +1,5 @@
 package com.example.URL_Shortener.DTO.responseDTO;
 
-import com.example.URL_Shortener.Models.Click;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

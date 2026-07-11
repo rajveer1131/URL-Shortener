@@ -9,6 +9,7 @@ import com.example.URL_Shortener.Models.Click;
 import com.example.URL_Shortener.Models.Url;
 import com.example.URL_Shortener.Service.ClickService;
 import com.example.URL_Shortener.Service.UrlService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +29,10 @@ public class ClickController {
 
 
     @PostMapping("/api/clicks/record")
-    public ResponseEntity<ApiResponse<?>> recordClick(@RequestBody ClickRequestDTO clickRequestDTO) {
-
-        clickService.recordClick(clickRequestDTO.getUrlId(), clickRequestDTO.getIpAddress(), clickRequestDTO.getUserAgent());
-        return new ResponseEntity<>(ApiResponse.success(null,"Click Recorded Successfully"), HttpStatus.OK);
+    public ResponseEntity<ApiResponse<?>> recordClick(@Valid @RequestBody ClickRequestDTO clickRequestDTO) {
+        Url url = urlService.getUrlById(clickRequestDTO.getUrlId());
+        clickService.recordClick(url, clickRequestDTO.getIpAddress(), clickRequestDTO.getUserAgent());
+        return new ResponseEntity<>(ApiResponse.success(null, "Click Recorded Successfully"), HttpStatus.OK);
 
     }
 
