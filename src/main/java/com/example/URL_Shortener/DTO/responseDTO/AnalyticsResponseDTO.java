@@ -18,5 +18,5 @@ public class AnalyticsResponseDTO {
     private String shortCode;
     private String originalUrl;
     private int totalClicks;
-    private List<Click> clickDetails;
+    private List<ClickResponseDTO> clickDetails;
 }

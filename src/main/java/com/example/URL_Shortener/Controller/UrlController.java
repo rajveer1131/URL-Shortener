@@ -1,25 +1,30 @@
 package com.example.URL_Shortener.Controller;
 
+import com.example.URL_Shortener.DTO.requestDTO.UrlRequestDTO;
+import com.example.URL_Shortener.DTO.responseDTO.ApiResponse;
+import com.example.URL_Shortener.DTO.responseDTO.UrlResponseDTO;
 import com.example.URL_Shortener.Models.Url;
 import com.example.URL_Shortener.Models.User;
-import com.example.URL_Shortener.Repository.UrlRepository;
+import com.example.URL_Shortener.Service.ClickService;
 import com.example.URL_Shortener.Service.UrlService;
-import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/urls")
 public class UrlController {
 
     private final UrlService urlService;
+    private final ClickService clickService;
 
-    public UrlController(UrlService urlService){
+    public UrlController(UrlService urlService, ClickService clickService) {
         this.urlService = urlService;
+        this.clickService = clickService;
     }
+
 
     /*
     POST /api/urls/shorten - Create short URL
@@ -28,48 +33,61 @@ public class UrlController {
     DELETE /api/urls/{id} - Delete URL
      */
 
-    @Data
-    static class ShortenUrlRequest {
-        private Long userId;
-        private String originalUrl;
-    }
-    @PostMapping("/api/urls/shorten")
-    public ResponseEntity<?> shortenUrl(@RequestBody ShortenUrlRequest shortenUrlRequest) {
+    @PostMapping("/shorten")
+    public ResponseEntity<ApiResponse<?>> shortenUrl(@RequestBody UrlRequestDTO urlRequestDTO) {
         try {
             User user = new User();
-            user.setId(shortenUrlRequest.getUserId());
-            String shortCode = urlService.shortenUrl(user, shortenUrlRequest.getOriginalUrl());
-            return new ResponseEntity<>(shortCode, HttpStatus.CREATED);
+            user.setId(urlRequestDTO.getUserId());
+            Url url = urlService.shortenUrl(user, urlRequestDTO.getOriginalUrl());
+            UrlResponseDTO urlResponseDTO = UrlResponseDTO.builder()
+                    .id(url.getId())
+                    .originalUrl(url.getOriginalUrl())
+                    .shortCode(url.getShortCode())
+                    .createdDate(url.getCreatedDate())
+                    .expiresDate(url.getExpiresDate())
+                    .build();
+            return new ResponseEntity<>(ApiResponse.success(urlResponseDTO, "URL shortened successfully"), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(ApiResponse.error(e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/api/{shortCode}")
-    public ResponseEntity<?> getOriginalUrl(@PathVariable("shortCode") String shortCode) {
+    @GetMapping("/{shortCode}")
+    public ResponseEntity<ApiResponse<?>> getOriginalUrl(@PathVariable("shortCode") String shortCode) {
         try {
             String originalUrl = urlService.getOriginalUrl(shortCode);
-            return new ResponseEntity<>(originalUrl, HttpStatus.OK);
+
+            return new ResponseEntity<>(ApiResponse.success(originalUrl, "Original URL Found"), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(ApiResponse.error(e.getMessage()), HttpStatus.NOT_FOUND);
         }
     }
-    @GetMapping("/api/urls/user/{userId}")
-    public List<Url> getUserUrls(@PathVariable("userId") Long userId){
-        User user = new User();
-        user.setId(userId);
-        return urlService.getUserUrls(user);
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ApiResponse<?>> getUserUrls(@PathVariable("userId") Long userId) {
+
+        List<Url> urls = urlService.getUserUrls(userId);
+
+        List<UrlResponseDTO> result = urls.stream()
+                .map(url -> UrlResponseDTO.builder()
+                        .id(url.getId())
+                        .originalUrl(url.getOriginalUrl())
+                        .shortCode(url.getShortCode())
+                        .createdDate(url.getCreatedDate())
+                        .expiresDate(url.getExpiresDate())
+                        .build()).toList();
+        return new ResponseEntity<>(ApiResponse.success(result, "All Url's for current User"), HttpStatus.OK);
     }
 
-    @DeleteMapping("/api/urls/{urlId}")
-    public ResponseEntity<String> deleteUrl(@PathVariable("urlId") Long urlId){
+    @DeleteMapping("/{urlId}")
+    public ResponseEntity<ApiResponse<?>> deleteUrl(@PathVariable("urlId") Long urlId) {
 
-        try{
+        try {
 
-        urlService.deleteUrlById(urlId);
-            return new ResponseEntity<>("URL deleted successfully", HttpStatus.OK);
-        }catch (IllegalArgumentException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            urlService.deleteUrlById(urlId);
+            return new ResponseEntity<>(ApiResponse.success(null, "URL deleted successfully"), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(ApiResponse.error(e.getMessage()), HttpStatus.NOT_FOUND);
         }
 
 

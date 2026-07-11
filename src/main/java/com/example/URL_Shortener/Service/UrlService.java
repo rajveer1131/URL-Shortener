@@ -19,26 +19,28 @@ public class UrlService {
         this.urlRepository = urlRepository;
     }
 
-    public String shortenUrl(User user, String originalUrl){
+    public Url shortenUrl(User user, String originalUrl){
         Url url = new Url();
         url.setOriginalUrl(originalUrl);
         url.setShortCode(generateShortCode());
         url.setCreatedDate(LocalDateTime.now());
         url.setUser(user);
 
-        return urlRepository.save(url).getShortCode();
+        return urlRepository.save(url);
 
 
     }
 
     public String getOriginalUrl(String shortCode){
+
+
         return urlRepository.findByShortCode(shortCode)
                 .orElseThrow(()-> new IllegalArgumentException("ShortCode not found"))
                 .getOriginalUrl();
     }
 
-    public List<Url> getUserUrls(User user){
-        return urlRepository.findByUserId(user.getId());
+    public List<Url> getUserUrls(Long userId){
+        return urlRepository.findByUserId(userId);
     }
 
     public Url getUrlById(Long id) throws IllegalArgumentException{
