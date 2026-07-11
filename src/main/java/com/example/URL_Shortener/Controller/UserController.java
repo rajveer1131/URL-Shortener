@@ -1,49 +1,62 @@
 package com.example.URL_Shortener.Controller;
 
+import com.example.URL_Shortener.DTO.requestDTO.UserRequestDTO;
+import com.example.URL_Shortener.DTO.responseDTO.ApiResponse;
+import com.example.URL_Shortener.DTO.responseDTO.UserResponseDTO;
 import com.example.URL_Shortener.Models.User;
 import com.example.URL_Shortener.Service.UserService;
-import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/api/users")
 public class UserController {
-
+    
     private final UserService userService;
-
+    
     public UserController(UserService userService) {
         this.userService = userService;
     }
-    @Data
-    static class UserRegisterRequest {
-        private String username;
-        private String email;
-        private String password;
-    }
 
 
-    @PostMapping("/api/users/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegisterRequest request) {
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<?>> registerUser(@RequestBody UserRequestDTO request) {
         try {
             User user = new User();
             user.setUsername(request.getUsername());
             user.setEmail(request.getEmail());
             user.setPassword(request.getPassword());
             User saved = userService.createUser(user);
-            return new ResponseEntity<>(saved, HttpStatus.CREATED);
+
+            UserResponseDTO response = UserResponseDTO.builder()
+                    .id(saved.getId())
+                    .username(saved.getUsername())
+                    .email(saved.getEmail())
+                    .createdAt(saved.getCreatedAt())
+                    .build();
+
+            return new ResponseEntity<>(ApiResponse.success(response, "User registered successfully"), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(ApiResponse.error(e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/api/users/{userId}")
-    public ResponseEntity<?> getUserById(@PathVariable("userId") Long userId) {
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<?>> getUserById(@PathVariable("userId") Long userId) {
         try {
             User user = userService.getUserById(userId);
-            return new ResponseEntity<>(user, HttpStatus.OK);
+
+            UserResponseDTO response = UserResponseDTO.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .createdAt(user.getCreatedAt())
+                    .build();
+
+            return new ResponseEntity<>(ApiResponse.success(response, "User retrieved successfully"), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(ApiResponse.error(e.getMessage()), HttpStatus.NOT_FOUND);
         }
     }
 

@@ -1,6 +1,8 @@
 package com.example.URL_Shortener.Controller;
 
 
+import com.example.URL_Shortener.DTO.requestDTO.ClickRequestDTO;
+import com.example.URL_Shortener.DTO.responseDTO.AnalyticsResponseDTO;
 import com.example.URL_Shortener.Models.Click;
 import com.example.URL_Shortener.Models.Url;
 import com.example.URL_Shortener.Service.ClickService;
@@ -18,57 +20,40 @@ public class ClickController {
     private final ClickService clickService;
     private final UrlService urlService;
 
-    public ClickController(ClickService clickService,UrlService urlService){
-        this.clickService=clickService;
-        this.urlService=urlService;
-    }
-
-    @Data
-    static class ClickRequestBody{
-        private  Long urlId;
-        private String ipAddress;
-        private String userAgent;
-
-
+    public ClickController(ClickService clickService, UrlService urlService) {
+        this.clickService = clickService;
+        this.urlService = urlService;
     }
 
     @Data
     static class AnalyticsResponse {
-        private Long urlId;
-        private String shortCode;
-        private String originalUrl;
-        private int totalClicks;
-        private List<Click> clickDetails;
+
     }
 
 
     @PostMapping("/api/clicks/record")
-    public ResponseEntity<String> recordClick(@RequestBody ClickRequestBody clickRequestBody){
+    public ResponseEntity<String> recordClick(@RequestBody ClickRequestDTO clickRequestDTO) {
 
-        try{
-            clickService.recordClick(clickRequestBody.getUrlId(),clickRequestBody.getIpAddress(),clickRequestBody.getUserAgent());
-            return new ResponseEntity<>("Click Recorded Successfully" , HttpStatus.OK);
-        }catch (IllegalArgumentException e) {
-           return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+
+        clickService.recordClick(clickRequestDTO.getUrlId(), clickRequestDTO.getIpAddress(), clickRequestDTO.getUserAgent());
+        return new ResponseEntity<>("Click Recorded Successfully", HttpStatus.OK);
+
     }
 
     @GetMapping("/api/analytics/{urlId}")
     public ResponseEntity<?> getAnalytics(@PathVariable Long urlId) {
-        try {
-            Url url = urlService.getUrlById(urlId);  // Get URL details
-            List<Click> clicks = clickService.getClicksByUrl(urlId);
 
-            AnalyticsResponse response = new AnalyticsResponse();
-            response.setUrlId(url.getId());
-            response.setShortCode(url.getShortCode());
-            response.setOriginalUrl(url.getOriginalUrl());
-            response.setTotalClicks(clicks.size());
-            response.setClickDetails(clicks);
+        Url url = urlService.getUrlById(urlId);  // Get URL details
+        List<Click> clicks = clickService.getClicksByUrl(urlId);
 
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+        AnalyticsResponseDTO responseDTO = new AnalyticsResponseDTO();
+        responseDTO.setUrlId(url.getId());
+        responseDTO.setShortCode(url.getShortCode());
+        responseDTO.setOriginalUrl(url.getOriginalUrl());
+        responseDTO.setTotalClicks(clicks.size());
+        responseDTO.setClickDetails(clicks);
+
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+
     }
 }
