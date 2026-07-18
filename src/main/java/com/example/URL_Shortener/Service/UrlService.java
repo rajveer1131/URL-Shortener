@@ -4,6 +4,8 @@ import com.example.URL_Shortener.Exception.ResourceNotFoundException;
 import com.example.URL_Shortener.Models.Url;
 import com.example.URL_Shortener.Models.User;
 import com.example.URL_Shortener.Repository.UrlRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,19 +15,23 @@ import java.util.Random;
 @Service
 public class UrlService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UrlService.class);
+
     private final UrlRepository urlRepository;
     private final ClickService clickService;
 
-    public UrlService(UrlRepository urlRepository,ClickService clickService) {
+    public UrlService(UrlRepository urlRepository, ClickService clickService) {
         this.urlRepository = urlRepository;
         this.clickService = clickService;
     }
 
-    public Url shortenUrl(User user, String originalUrl) {
+    public Url shortenUrl(User user, String originalUrl, LocalDateTime expiresDate) {
+        logger.info("Receive expiration Date: {}", expiresDate);
         Url url = new Url();
         url.setOriginalUrl(originalUrl);
         url.setShortCode(generateShortCode());
         url.setCreatedDate(LocalDateTime.now());
+        url.setExpiresDate(expiresDate);
         url.setUser(user);
 
         return urlRepository.save(url);
@@ -42,7 +48,10 @@ public class UrlService {
 
         Url url = urlRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new ResourceNotFoundException("ShortCode not found"));
-        clickService.recordClick(url, ipAddress,userAgent);
+        if (url.getExpiresDate() != null && url.getExpiresDate().isBefore(LocalDateTime.now())) {
+            throw new ResourceNotFoundException("This URL has expired");
+        }
+        clickService.recordClick(url, ipAddress, userAgent);
 
         return url.getOriginalUrl();
     }
@@ -51,8 +60,13 @@ public class UrlService {
         return urlRepository.findByUserId(userId);
     }
 
-    public Url getUrlById(Long id){
+    public Url getUrlById(Long id) {
         return urlRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Url does not exist"));
+    }
+
+    public Url getUrlByIdWithClicks(Long id) {
+        return urlRepository.findByUrlIdWithClicks(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Url does not exist"));
     }
 
