@@ -4,6 +4,8 @@ package com.example.URL_Shortener.Models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,6 +18,7 @@ public class Click {
     @ManyToOne
     @JoinColumn(name = "url_id")
     @JsonIgnore
+    @ToString.Exclude
     private Url url;
     private LocalDateTime accessDate;
     private String ipAddress;

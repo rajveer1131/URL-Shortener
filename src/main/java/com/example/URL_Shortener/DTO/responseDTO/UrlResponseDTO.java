@@ -15,6 +15,7 @@ public class UrlResponseDTO {
     private Long id;
     private String originalUrl;
     private String shortCode;
+    private Integer totalClicks;
     private LocalDateTime createdDate;
     private LocalDateTime expiresDate;
 }

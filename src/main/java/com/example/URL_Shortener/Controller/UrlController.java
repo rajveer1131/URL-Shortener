@@ -9,6 +9,8 @@ import com.example.URL_Shortener.Service.ClickService;
 import com.example.URL_Shortener.Service.UrlService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,7 @@ import java.util.List;
 @RequestMapping("/api/urls")
 public class UrlController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UrlController.class);
     private final UrlService urlService;
     private final ClickService clickService;
 
@@ -40,11 +43,12 @@ public class UrlController {
     public ResponseEntity<ApiResponse<?>> shortenUrl(@Valid @RequestBody UrlRequestDTO urlRequestDTO) {
         User user = new User();
         user.setId(urlRequestDTO.getUserId());
-        Url url = urlService.shortenUrl(user, urlRequestDTO.getOriginalUrl());
+        Url url = urlService.shortenUrl(user, urlRequestDTO.getOriginalUrl(), urlRequestDTO.getExpiresDate());
         UrlResponseDTO urlResponseDTO = UrlResponseDTO.builder()
                 .id(url.getId())
                 .originalUrl(url.getOriginalUrl())
                 .shortCode(url.getShortCode())
+                .totalClicks(clickService.getClickCount(url.getId()))
                 .createdDate(url.getCreatedDate())
                 .expiresDate(url.getExpiresDate())
                 .build();
@@ -52,12 +56,12 @@ public class UrlController {
     }
 
     @GetMapping("/{shortCode}")
-    public RedirectView  redirectToOriginalUrl(@PathVariable("shortCode") String shortCode, HttpServletRequest request) {
+    public RedirectView redirectToOriginalUrl(@PathVariable("shortCode") String shortCode, HttpServletRequest request) {
 
         String ipAddress = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
 
-        String originalUrl = urlService.getOriginalUrlAndRecordClick(shortCode,ipAddress,userAgent);
+        String originalUrl = urlService.getOriginalUrlAndRecordClick(shortCode, ipAddress, userAgent);
         RedirectView redirectView = new RedirectView(originalUrl);
         redirectView.setStatusCode(HttpStatus.FOUND);
         return redirectView;

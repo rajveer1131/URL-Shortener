@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -17,5 +18,7 @@ public class AnalyticsResponseDTO {
     private String shortCode;
     private String originalUrl;
     private int totalClicks;
+    private LocalDateTime expiresDate;
+    private boolean isExpired;
     private List<ClickResponseDTO> clickDetails;
 }

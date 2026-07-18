@@ -31,6 +31,6 @@ public class ClickService {
     }
 
     public int getClickCount(Long urlId) {
-        return clickRepository.findByUrlId(urlId).size();
+        return clickRepository.getClickCount(urlId);
     }
 }

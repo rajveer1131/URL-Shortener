@@ -3,6 +3,7 @@ package com.example.URL_Shortener.Models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -21,12 +22,12 @@ public class Url {
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore
+    @ToString.Exclude
     private User user;
     @OneToMany(mappedBy = "url")
-    @JsonIgnore
+    @ToString.Exclude
     private List<Click> clicks;
     @CreationTimestamp
     private LocalDateTime createdDate;
-
     private LocalDateTime expiresDate;
 }

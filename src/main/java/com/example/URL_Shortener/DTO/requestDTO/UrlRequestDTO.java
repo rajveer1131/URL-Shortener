@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,5 +20,7 @@ public class UrlRequestDTO {
     @NotBlank(message = "url can not be blank")
     @URL(message = "Must be a valid URL starting with http:// or https://")
     private String originalUrl;
+
+    private LocalDateTime expiresDate;
 }
     
