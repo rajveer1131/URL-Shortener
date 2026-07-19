@@ -1,7 +1,9 @@
 package com.example.URL_Shortener.DTO.requestDTO;
 
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +23,9 @@ public class UrlRequestDTO {
     @URL(message = "Must be a valid URL starting with http:// or https://")
     private String originalUrl;
 
+    private String shortCode;
+
+    @Future(message = "Expiration date must be in the future")
     private LocalDateTime expiresDate;
 }
     

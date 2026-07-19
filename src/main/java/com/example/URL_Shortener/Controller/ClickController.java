@@ -52,7 +52,7 @@ public class ClickController {
                 .originalUrl(url.getOriginalUrl())
                 .totalClicks(clickService.getClickCount(urlId))
                 .expiresDate(url.getExpiresDate())
-                .isExpired(url.getExpiresDate().isBefore(LocalDateTime.now()))
+                .isExpired(url.getExpiresDate() != null && url.getExpiresDate().isBefore(LocalDateTime.now()))
                 .clickDetails(clicks.stream().map(click -> ClickResponseDTO.builder()
                         .accessDate(click.getAccessDate())
                         .ipAddress(click.getIpAddress())

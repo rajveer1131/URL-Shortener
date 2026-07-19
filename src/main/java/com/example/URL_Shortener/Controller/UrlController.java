@@ -43,7 +43,7 @@ public class UrlController {
     public ResponseEntity<ApiResponse<?>> shortenUrl(@Valid @RequestBody UrlRequestDTO urlRequestDTO) {
         User user = new User();
         user.setId(urlRequestDTO.getUserId());
-        Url url = urlService.shortenUrl(user, urlRequestDTO.getOriginalUrl(), urlRequestDTO.getExpiresDate());
+        Url url = urlService.shortenUrl(user, urlRequestDTO.getOriginalUrl(),urlRequestDTO.getShortCode(), urlRequestDTO.getExpiresDate());
         UrlResponseDTO urlResponseDTO = UrlResponseDTO.builder()
                 .id(url.getId())
                 .originalUrl(url.getOriginalUrl())

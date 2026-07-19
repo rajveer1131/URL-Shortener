@@ -1,6 +1,7 @@
 package com.example.URL_Shortener.Service;
 
 import com.example.URL_Shortener.Exception.ResourceNotFoundException;
+import com.example.URL_Shortener.Exception.ShortenUrlAlreadyExists;
 import com.example.URL_Shortener.Models.Url;
 import com.example.URL_Shortener.Models.User;
 import com.example.URL_Shortener.Repository.UrlRepository;
@@ -25,11 +26,19 @@ public class UrlService {
         this.clickService = clickService;
     }
 
-    public Url shortenUrl(User user, String originalUrl, LocalDateTime expiresDate) {
-        logger.info("Receive expiration Date: {}", expiresDate);
+    public Url shortenUrl(User user, String originalUrl,String shortCode, LocalDateTime expiresDate) {
+
         Url url = new Url();
         url.setOriginalUrl(originalUrl);
+
+        if(shortCode != null && !shortCode.replace(" ", "").isEmpty()){
+            if(urlRepository.existsByShortCode(shortCode)){
+                throw new ShortenUrlAlreadyExists("Short Code already exists and unique code");
+            }
+            url.setShortCode(shortCode);
+        }else{
         url.setShortCode(generateShortCode());
+        }
         url.setCreatedDate(LocalDateTime.now());
         url.setExpiresDate(expiresDate);
         url.setUser(user);

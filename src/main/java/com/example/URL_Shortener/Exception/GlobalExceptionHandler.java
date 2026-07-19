@@ -14,6 +14,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ApiResponse.error(e.getMessage()),HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ShortenUrlAlreadyExists.class)
+    public ResponseEntity<ApiResponse<?>> handleShortCodeAlreadyExists(ShortenUrlAlreadyExists e){
+        return new ResponseEntity<>(ApiResponse.error(e.getMessage()),HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UserAlreadyExistsException.class)
     public  ResponseEntity<ApiResponse<?>> handleUserAlreadyExists(UserAlreadyExistsException e){
         return new ResponseEntity<>(ApiResponse.error(e.getMessage()),HttpStatus.BAD_REQUEST);

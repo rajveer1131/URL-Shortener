@@ -24,7 +24,7 @@ public class Url {
     @JsonIgnore
     @ToString.Exclude
     private User user;
-    @OneToMany(mappedBy = "url")
+    @OneToMany(mappedBy = "url",cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<Click> clicks;
     @CreationTimestamp
