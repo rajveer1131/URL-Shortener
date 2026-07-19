@@ -16,7 +16,7 @@ A production-oriented **REST API** built with **Spring Boot** for shortening URL
 ---
 
 ## 💡 Why This Project?
-This project was built to learn and demonstrate production-oriented Spring Boot development practices. It highlights structured layered architecture, DTO separation, robust input validation, centralized error handling, asynchronous database schedulers, and relational database schema design.
+This project was built to learn and demonstrate production-oriented Spring Boot development practices. It highlights structured layered architecture, DTO separation, robust input validation, centralized error handling,cleanup database schedulers, and relational database schema design.
 
 ---
 
@@ -263,7 +263,7 @@ Content-Type: application/json
 
 #### Redirect via Shortcode (Access Redirection)
 ```http
-GET /api/{shortCode}
+GET /api/urls/{shortCode}
 ```
 > ⚠️ **Note:** This endpoint returns an HTTP `302 Found` redirection to the original URL. If the URL has expired (`expiresDate` is in the past), it yields an HTTP `404 Not Found` (planned update to `410 Gone`). It automatically records client click metrics (IP Address, User Agent, access time) in the background.
 
@@ -338,8 +338,8 @@ curl http://localhost:8080/api/analytics/1
 - [x] User Registration with BCrypt password hashing.
 - [x] Unique shortcode auto-generation (base-52 letter sets with collision checks).
 - [x] Custom shortcode aliases with validation.
-- [x] URL Expiration (TTL) checks during redirection.
-- [x] Asynchronous daily cleanup of expired links via background `@Scheduled` job.
+- [x] URL Expiration checks for expired URLs during redirection.
+- [x] Scheduled daily cleanup of expired links via background `@Scheduled` job.
 - [x] Analytics logging (IP, User-Agent, Access Time) and metrics aggregation endpoint.
 
 ### Planned Enhancements

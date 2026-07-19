@@ -17,7 +17,7 @@ public class Url {
     private Long id;
     @Column(nullable = false)
     private String originalUrl;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String shortCode;
     @ManyToOne
     @JoinColumn(name = "user_id")
